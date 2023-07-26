@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -26,6 +27,9 @@ class homePage extends StatefulWidget {
 }
 
 class _homePageState extends State<homePage> {
+  final picker = ImagePicker();
+  File? image;
+  Position? p1;
   @override
   void initState() {
     super.initState();
@@ -40,15 +44,13 @@ class _homePageState extends State<homePage> {
       // GPS izni verilmemişse izin iste
       final status = await Permission.locationWhenInUse.request();
       if (status.isGranted) {
-        print('GPS izni başarıyla alındı.');
+        print('GPS izni verildi.');
       } else {
         print('GPS izni verilmedi.');
       }
     }
   }
 
-  final picker = ImagePicker();
-  File? image;
   Map<String, dynamic>? exifData1;
   @override
   Widget build(BuildContext context) {
@@ -77,7 +79,7 @@ class _homePageState extends State<homePage> {
                     child: Center(
                       child: exifData1 != null
                           ? Text(
-                              'Enlem :${exifData1?['GPSLatitude']} , Boylam : ${exifData1?['GPSLongitude']} , \n Exif Verileri : ${exifData1}')
+                              'Enlem : ${p1?.latitude} , Boylam : ${p1?.longitude} , \n Exif Verileri : ${exifData1}')
                           : Text('Veriler Gelecek.'),
                     ),
                   ),
@@ -85,12 +87,14 @@ class _homePageState extends State<homePage> {
               ),
             ),
             ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  p1 = await konum();
                   fotoGetir(ImageSource.gallery);
                 },
                 child: Text("GALERİDEN SEÇ")),
             ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  p1 = await konum();
                   fotoGetir(ImageSource.camera);
                 },
                 child: Text("KAMERADAN ÇEK")),
@@ -98,6 +102,12 @@ class _homePageState extends State<homePage> {
         ),
       ),
     );
+  }
+
+  Future<Position> konum() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    return position;
   }
 
   void fotoGetir(ImageSource? source) async {
