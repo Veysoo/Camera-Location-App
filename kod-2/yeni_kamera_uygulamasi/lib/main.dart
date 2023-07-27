@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:exif/exif.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -30,6 +33,8 @@ class _homePageState extends State<homePage> {
   final picker = ImagePicker();
   File? image;
   Position? p1;
+  String? sehir, ulke, sokak;
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +84,7 @@ class _homePageState extends State<homePage> {
                     child: Center(
                       child: exifData1 != null
                           ? Text(
-                              'Enlem : ${p1?.latitude} , Boylam : ${p1?.longitude} , \n Exif Verileri : ${exifData1}')
+                              'Enlem : ${p1?.altitude} , Boylam : ${p1?.longitude} , Ülke : $ulke  ,  Şehir : $sehir , Sokak : $sokak , \n Exif Verileri : ${exifData1} ')
                           : Text('Veriler Gelecek.'),
                     ),
                   ),
@@ -89,12 +94,14 @@ class _homePageState extends State<homePage> {
             ElevatedButton(
                 onPressed: () async {
                   p1 = await konum();
+                  await konumismi(p1!);
                   fotoGetir(ImageSource.gallery);
                 },
                 child: Text("GALERİDEN SEÇ")),
             ElevatedButton(
                 onPressed: () async {
                   p1 = await konum();
+                  await konumismi(p1!);
                   fotoGetir(ImageSource.camera);
                 },
                 child: Text("KAMERADAN ÇEK")),
@@ -102,6 +109,19 @@ class _homePageState extends State<homePage> {
         ),
       ),
     );
+  }
+
+  Future<void> konumismi(Position p) async {
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(p.latitude, p.longitude);
+
+    Placemark place = placemarks.first;
+
+    setState(() {
+      ulke = place.country;
+      sehir = place.locality;
+      sokak = place.street;
+    });
   }
 
   Future<Position> konum() async {
