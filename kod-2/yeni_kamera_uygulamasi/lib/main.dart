@@ -5,9 +5,17 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:yeni_kamera_uygulamasi/ikinci_sayfa.dart';
+import 'package:yeni_kamera_uygulamasi/providers/mesajlar.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider<veriler>(
+      create: (context) => veriler(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -17,7 +25,10 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Material App',
-      home: homePage(),
+      routes: {
+        "/": (context) => homePage(),
+        "/ikinciSayfa": (context) => IkinciSayfa()
+      },
     );
   }
 }
@@ -91,20 +102,53 @@ class _homePageState extends State<homePage> {
                 ],
               ),
             ),
-            ElevatedButton(
-                onPressed: () async {
-                  p1 = await konum();
-                  await konumismi(p1!);
-                  fotoGetir(ImageSource.gallery);
-                },
-                child: Text("GALERİDEN SEÇ")),
-            ElevatedButton(
-                onPressed: () async {
-                  p1 = await konum();
-                  await konumismi(p1!);
-                  fotoGetir(ImageSource.camera);
-                },
-                child: Text("KAMERADAN ÇEK")),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, "/ikinciSayfa");
+                        },
+                        child: Text("yeni sayfada exif ve konum verileri")),
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
+                        onPressed: () async {
+                          p1 = await konum();
+                          await konumismi(p1!);
+                          fotoGetir(ImageSource.gallery);
+                          Provider.of<veriler>(context, listen: false).exif =
+                              exifData1;
+                          Provider.of<veriler>(context, listen: false).sehir =
+                              sehir;
+                          Provider.of<veriler>(context, listen: false).ulke =
+                              ulke;
+                          Provider.of<veriler>(context, listen: false).sokak =
+                              sokak;
+                        },
+                        child: Text("GALERİDEN SEÇ")),
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
+                        onPressed: () async {
+                          p1 = await konum();
+                          await konumismi(p1!);
+                          fotoGetir(ImageSource.camera);
+                          Provider.of<veriler>(context, listen: false).exif =
+                              exifData1;
+                          Provider.of<veriler>(context, listen: false).sehir =
+                              sehir;
+                          Provider.of<veriler>(context, listen: false).ulke =
+                              ulke;
+                          Provider.of<veriler>(context, listen: false).sokak =
+                              sokak;
+                        },
+                        child: Text("KAMERADAN ÇEK")),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
